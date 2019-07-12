@@ -17,10 +17,11 @@ options.add_argument('--window-size=1024,768')
 def download( sex = '男性', age = '30', ppp = '60歳満了'):
     output = Path(f'results/{sex}-{age}-{ppp}.csv')
     if (output.exists()):
-        print(f'result alread exist for {output}')
+        print(f'result already exists for {output}')
         return
 
     driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options);
+    driver.implicitly_wait(15)
     url="https://asbox.irrc.co.jp/"
     driver.get(url)
     # login
@@ -62,7 +63,6 @@ def download( sex = '男性', age = '30', ppp = '60歳満了'):
     driver.find_elements_by_link_text(ppp)[1].click()
         
     face_amount = driver.find_element_by_xpath("//input[@type='number' and @min=3]")
-    print(face_amount)
     face_amount.send_keys('10')
 
     driver.find_element_by_link_text('2年').click()
@@ -78,7 +78,7 @@ def download( sex = '男性', age = '30', ppp = '60歳満了'):
     df = pd.read_html(str(table))
     output.parent.mkdir(parents=True, exist_ok=True)
     df[1].to_csv(output, encoding='utf-8-sig')
-    print("finish")
+    print(f'result created for {output}')
 
 if __name__ == "__main__":
     download('男性', '30', '60歳満了')
@@ -89,3 +89,7 @@ if __name__ == "__main__":
     download('男性', '31', '65歳満了')
     download('女性', '31', '60歳満了')
     download('女性', '31', '65歳満了')
+    download('男性', '32', '60歳満了')
+    download('男性', '32', '65歳満了')
+    download('女性', '32', '60歳満了')
+    download('女性', '32', '65歳満了')
