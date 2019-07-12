@@ -15,21 +15,26 @@ options.add_argument('--no-sandbox')
 options.add_argument('--window-size=1024,768')
 
 def download( sex = '男性', age = '30', ppp = '60歳満了'):
-    driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options);
-    url="https://asbox.irrc.co.jp/"
-    driver.get(url)
     output = Path(f'results/{sex}-{age}-{ppp}.csv')
     if (output.exists()):
         print(f'result alread exist for {output}')
         return
 
+    driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options);
+    url="https://asbox.irrc.co.jp/"
+    driver.get(url)
     # login
-    time.sleep(5)
+    time.sleep(3)
     driver.find_element_by_id('UserID').send_keys('demo00601')
     driver.find_element_by_id('Password').send_keys('1234568b')
     driver.find_element_by_id('LoginButton').click()
 
-    # TODO:ログインしてる場合も処理できるようにする。
+    time.sleep(3)
+    # 既にログインしている場合は確認のポップアップが出るので'はい'を押す
+    try:
+        driver.find_element_by_id('PopupUtils_PopupButton1').click()
+    except:
+        pass
 
     # click start
     time.sleep(5)
@@ -72,8 +77,15 @@ def download( sex = '男性', age = '30', ppp = '60歳満了'):
     table = soup.findAll('table', {'class':'tableFull dataTable no-footer'})
     df = pd.read_html(str(table))
     output.parent.mkdir(parents=True, exist_ok=True)
-    print(df[1].to_csv(output, encoding='utf-8-sig'))
+    df[1].to_csv(output, encoding='utf-8-sig')
     print("finish")
 
 if __name__ == "__main__":
     download('男性', '30', '60歳満了')
+    download('男性', '30', '65歳満了')
+    download('女性', '30', '60歳満了')
+    download('女性', '30', '65歳満了')
+    download('男性', '31', '60歳満了')
+    download('男性', '31', '65歳満了')
+    download('女性', '31', '60歳満了')
+    download('女性', '31', '65歳満了')
