@@ -72,11 +72,18 @@ def download( sex = '男性', age = '30', ppp = '60歳満了'):
     driver.find_element_by_id('InsuranceItemChoice_SearchButton').click()
 
     time.sleep(10)  # TODO:ちゃんと待ったほうがよい。
+
     # resultsの結果の取得と保存
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    table = soup.findAll('table', {'class':'tableFull dataTable no-footer'})
-    df = pd.read_html(str(table))
+    table = str(soup.findAll('table', {'class':'tableFull dataTable no-footer'}))
+    table = table.replace('<br/>', '---')  # pd.read_htmlで改行がうまくとれないので'---'に変換しておく。
+    # table = table.replace('<br/>', '<br>')
+    table = table.replace('<span class="icon-menjyo"></span>', 'P免')
+    df = pd.read_html(table)
     output.parent.mkdir(parents=True, exist_ok=True)
+
+    df[1]['特　徴'] = df[1]['特　徴'].str.replace('---', '\n') 
+    df[1]['保険期間---払込期間'] = df[1]['保険期間---払込期間'].str.replace('---', '\n') 
     df[1].to_csv(output, encoding='utf-8-sig')
     print(f'result created for {output}')
 
