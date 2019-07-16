@@ -2,7 +2,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -21,59 +21,59 @@ def download( sex = '男性', age = '30', ppp = '60歳満了'):
         return
 
     driver = webdriver.Chrome(executable_path="/usr/lib/chromium-browser/chromedriver", options=options);
-    driver.implicitly_wait(15)
+
     url="https://asbox.irrc.co.jp/"
     driver.get(url)
+
+    wait = WebDriverWait(driver, 15)
+
     # login
-    time.sleep(3)
+    wait.until(EC.element_to_be_clickable((By.ID, 'UserID')))
     driver.find_element_by_id('UserID').send_keys('demo00601')
     driver.find_element_by_id('Password').send_keys('1234568b')
     driver.find_element_by_id('LoginButton').click()
 
-    time.sleep(3)
     # 既にログインしている場合は確認のポップアップが出るので'はい'を押す
     try:
+        elemnt = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'PopupUtils_PopupButton1')))
         driver.find_element_by_id('PopupUtils_PopupButton1').click()
+        element.click()
     except:
         pass
 
     # click start
-    time.sleep(5)
-    driver.find_element_by_id('OpeningScreen_StartButton').click()
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'OpeningScreen_StartButton')))
+    element.click()
 
-    time.sleep(5)
-    driver.find_element_by_id('StartMenu_FirstVisitorKojinButton').click()
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'StartMenu_FirstVisitorKojinButton')))
+    element.click()
 
-    time.sleep(5)
 
-    driver.find_element_by_id('FamilyBasicInfoEdit_gender_0').click()
-    time.sleep(2)
-    driver.find_element_by_link_text("男性").click()
+    wait.until(EC.element_to_be_clickable((By.ID, 'FamilyBasicInfoEdit_gender_0'))).click()
+    wait.until(EC.element_to_be_clickable((By.LINK_TEXT , '男性'))).click()
 
-    driver.find_element_by_id('FamilyBasicInfoEdit_age_0').send_keys(age)
-    driver.find_element_by_id('FamilyBasicInfoEdit_SearchProduct').click()
+    wait.until(EC.element_to_be_clickable((By.ID , 'FamilyBasicInfoEdit_age_0'))).send_keys(age)
+    # driver.find_element_by_id('FamilyBasicInfoEdit_age_0').send_keys(age)
+    wait.until(EC.element_to_be_clickable((By.ID , 'FamilyBasicInfoEdit_SearchProduct'))).click()
 
-    time.sleep(8)
-    driver.find_element_by_link_text("収入保障保険").click();
+    wait.until(EC.element_to_be_clickable((By.LINK_TEXT , '収入保障保険'))).click()
 
-    time.sleep(2)
-    driver.find_element_by_link_text(ppp).click()
+    wait.until(EC.element_to_be_clickable((By.LINK_TEXT , ppp))).click()
+
     # 払込期間を選択する。保険期間を選んだ後でないと出てこない。
-    time.sleep(2)
+    time.sleep(1)
     driver.find_elements_by_link_text(ppp)[1].click()
         
-    face_amount = driver.find_element_by_xpath("//input[@type='number' and @min=3]")
-    face_amount.send_keys('10')
-
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@type='number' and @min=3]"))).send_keys('10')
     driver.find_element_by_link_text('2年').click()
     driver.find_element_by_link_text('標準体').click()
     driver.find_element_by_link_text('非喫煙者標準体').click()
     driver.find_element_by_link_text('非喫煙者優良体').click()
     driver.find_element_by_id('InsuranceItemChoice_SearchButton').click()
 
-    time.sleep(10)  # TODO:ちゃんと待ったほうがよい。
-
     # resultsの結果の取得と保存
+    wait.until(EC.element_to_be_clickable((By.ID, "InsuranceItemList_AllCheckedButton")))  # tableのloadが終わると'全選択'bottunが見えるようになるのでそれまで待つ。
+
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     table = str(soup.findAll('table', {'class':'tableFull dataTable no-footer'}))
     table = table.replace('<br/>', '---')  # pd.read_htmlで改行がうまくとれないので'---'に変換しておく。
